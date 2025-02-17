@@ -2,8 +2,10 @@ const express = require('express');
 const router = express.Router();
 const Task = require('../models/Task');
 const auth = require('../middleware/auth');
+const validate = require('../middleware/validateRequest');
+const { createTaskValidator, updateTaskValidator } = require('../validators/taskValidators');
 
-// Récupérer toutes les tâches de l'utilisateur
+// Get all user tasks
 router.get('/', auth, async (req, res) => {
   try {
     const tasks = await Task.findAll({
@@ -17,12 +19,13 @@ router.get('/', auth, async (req, res) => {
     });
     res.json(tasks);
   } catch (error) {
-    res.status(500).json({ message: 'Erreur serveur' });
+    console.log(error); 
+    res.status(500).json({ message: 'Server error' });
   }
 });
 
-// Créer une nouvelle tâche
-router.post('/', auth, async (req, res) => {
+// Create a new task
+router.post('/', auth, createTaskValidator, validate, async (req, res) => {
   try {
     const { title, description, parentTaskId } = req.body;
     
@@ -35,12 +38,12 @@ router.post('/', auth, async (req, res) => {
 
     res.status(201).json(task);
   } catch (error) {
-    res.status(400).json({ message: 'Erreur lors de la création de la tâche' });
+    res.status(400).json({ message: 'Error creating task' });
   }
 });
 
-// Mettre à jour une tâche
-router.put('/:id', auth, async (req, res) => {
+// Update a task
+router.put('/:id', auth, updateTaskValidator, validate, async (req, res) => {
   try {
     const { title, description, status, parentTaskId } = req.body;
     const task = await Task.findOne({ 
@@ -51,7 +54,7 @@ router.put('/:id', auth, async (req, res) => {
     });
 
     if (!task) {
-      return res.status(404).json({ message: 'Tâche non trouvée' });
+      return res.status(404).json({ message: 'Task not found' });
     }
 
     await task.update({
@@ -63,11 +66,11 @@ router.put('/:id', auth, async (req, res) => {
 
     res.json(task);
   } catch (error) {
-    res.status(400).json({ message: 'Erreur lors de la mise à jour de la tâche' });
+    res.status(400).json({ message: 'Error updating task' });
   }
 });
 
-// Supprimer une tâche
+// Delete a task
 router.delete('/:id', auth, async (req, res) => {
   try {
     const result = await Task.destroy({ 
@@ -78,12 +81,12 @@ router.delete('/:id', auth, async (req, res) => {
     });
 
     if (!result) {
-      return res.status(404).json({ message: 'Tâche non trouvée' });
+      return res.status(404).json({ message: 'Task not found' });
     }
 
-    res.json({ message: 'Tâche supprimée avec succès' });
+    res.json({ message: 'Task successfully deleted' });
   } catch (error) {
-    res.status(500).json({ message: 'Erreur lors de la suppression de la tâche' });
+    res.status(500).json({ message: 'Error deleting task' });
   }
 });
 

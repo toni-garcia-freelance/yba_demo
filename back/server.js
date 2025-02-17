@@ -16,7 +16,7 @@ app.use(express.json());
 testConnection();
 
 // Sync database
-sequelize.sync({ force: true })
+sequelize.sync({ force: false })
   .then(() => console.log('Database synchronized'))
   .catch(err => console.error('Error syncing database:', err));
 
@@ -24,12 +24,8 @@ sequelize.sync({ force: true })
 app.use('/api/auth', authRoutes);
 app.use('/api/tasks', tasksRoutes);
 
-app.get('/', (req, res) => {
-  res.json({ message: 'Welcome to the API' });
-});
-
 // Start server
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
-}); 
+});  

@@ -43,22 +43,15 @@ Task.init({
   tableName: 'Tasks'
 });
 
-// Définition des associations
-Task.associate = (models) => {
-  Task.belongsTo(models.User, {
-    foreignKey: 'userId',
-    as: 'user'
-  });
+// Define associations directly
+Task.belongsTo(Task, {
+  foreignKey: 'parentTaskId',
+  as: 'parentTask'
+});
 
-  Task.belongsTo(Task, {
-    foreignKey: 'parentTaskId',
-    as: 'parentTask'
-  });
-
-  Task.hasMany(Task, {
-    foreignKey: 'parentTaskId',
-    as: 'subTasks'
-  });
-};
+Task.hasMany(Task, {
+  foreignKey: 'parentTaskId',
+  as: 'subTasks'
+});
 
 module.exports = Task; 
