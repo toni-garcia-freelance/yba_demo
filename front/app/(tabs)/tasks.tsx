@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, FlatList, ActivityIndicator } from 'react-native';
-import { Task, taskService } from '@/app/services/taskService';
+import { Task } from '@/app/interfaces/Task';
+import { getTasks } from '@/app/services/taskService';
 
 export default function TasksScreen() {
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -13,7 +14,7 @@ export default function TasksScreen() {
 
   const fetchTasks = async () => {
     try {
-      const tasksData = await taskService.getTasks();
+      const tasksData = await getTasks();
       setTasks(tasksData);
       setError(null);
     } catch (err) {
