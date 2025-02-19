@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, FlatList, ActivityIndicator, TouchableOpacity } from 'react-native';
 import { Task } from '@/app/interfaces/Task';
-import { getTasks } from '@/app/services/taskService';
-import { AddTaskModal } from '@/app/components/AddTaskModal';
+import { getTasks, deleteTask } from '@/app/services/taskService';
+import { TaskModal } from '@/app/components/AddTaskModal';
+import { DeleteConfirmationModal } from '@/app/components/DeleteConfirmationModal';
+import { Ionicons } from '@expo/vector-icons';
 
 interface OrganizedTask extends Task {
   childTasks?: Task[];
@@ -12,7 +14,10 @@ export default function TasksScreen() {
   const [tasks, setTasks] = useState<OrganizedTask[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [isAddModalVisible, setIsAddModalVisible] = useState(false);
+  const [isTaskModalVisible, setIsTaskModalVisible] = useState(false);
+  const [selectedTask, setSelectedTask] = useState<Task | undefined>();
+  const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
+  const [taskToDelete, setTaskToDelete] = useState<Task | undefined>();
 
   useEffect(() => {
     fetchTasks();
@@ -44,19 +49,80 @@ export default function TasksScreen() {
     }
   };
 
+  const handleEditTask = (task: Task) => {
+    setSelectedTask(task);
+    setIsTaskModalVisible(true);
+  };
+
+  const handleDeleteTask = (task: Task) => {
+    setTaskToDelete(task);
+    setIsDeleteModalVisible(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!taskToDelete) return;
+
+    try {
+      await deleteTask(taskToDelete.id);
+      await fetchTasks();
+    } catch (err) {
+      setError('Failed to delete task');
+      console.error('Error deleting task:', err);
+    } finally {
+      setIsDeleteModalVisible(false);
+      setTaskToDelete(undefined);
+    }
+  };
+
   const renderChildTask = (task: Task) => (
     <View style={styles.childTaskItem} key={task.id}>
-      <Text style={styles.taskTitle}>{task.title}</Text>
-      <Text style={styles.taskDescription}>{task.description}</Text>
-      <Text style={styles.taskStatus}>Status: {task.status}</Text>
+      <View style={styles.taskRow}>
+        <View style={styles.taskContent}>
+          <Text style={styles.taskTitle}>{task.title}</Text>
+          <Text style={styles.taskDescription}>{task.description}</Text>
+          <Text style={styles.taskStatus}>Status: {task.status}</Text>
+        </View>
+        <View style={styles.taskActions}>
+          <TouchableOpacity
+            style={[styles.actionButton, styles.editButton]}
+            onPress={() => handleEditTask(task)}
+          >
+            <Ionicons name="pencil" size={20} color="white" />
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.actionButton, styles.deleteButton]}
+            onPress={() => handleDeleteTask(task)}
+          >
+            <Ionicons name="trash" size={20} color="white" />
+          </TouchableOpacity>
+        </View>
+      </View>
     </View>
   );
 
   const renderTask = ({ item }: { item: OrganizedTask }) => (
     <View style={styles.taskItem}>
-      <Text style={styles.taskTitle}>{item.title}</Text>
-      <Text style={styles.taskDescription}>{item.description}</Text>
-      <Text style={styles.taskStatus}>Status: {item.status}</Text>
+      <View style={styles.taskRow}>
+        <View style={styles.taskContent}>
+          <Text style={styles.taskTitle}>{item.title}</Text>
+          <Text style={styles.taskDescription}>{item.description}</Text>
+          <Text style={styles.taskStatus}>Status: {item.status}</Text>
+        </View>
+        <View style={styles.taskActions}>
+          <TouchableOpacity
+            style={[styles.actionButton, styles.editButton]}
+            onPress={() => handleEditTask(item)}
+          >
+            <Ionicons name="pencil" size={20} color="white" />
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.actionButton, styles.deleteButton]}
+            onPress={() => handleDeleteTask(item)}
+          >
+            <Ionicons name="trash" size={20} color="white" />
+          </TouchableOpacity>
+        </View>
+      </View>
       
       {item.childTasks && item.childTasks.length > 0 && (
         <View style={styles.childTasksContainer}>
@@ -86,7 +152,10 @@ export default function TasksScreen() {
     <View style={styles.container}>
       <TouchableOpacity
         style={styles.addButton}
-        onPress={() => setIsAddModalVisible(true)}
+        onPress={() => {
+          setSelectedTask(undefined);
+          setIsTaskModalVisible(true);
+        }}
       >
         <Text style={styles.addButtonText}>+ Add Task</Text>
       </TouchableOpacity>
@@ -98,13 +167,28 @@ export default function TasksScreen() {
         contentContainerStyle={styles.listContainer}
       />
 
-      <AddTaskModal
-        visible={isAddModalVisible}
-        onClose={() => setIsAddModalVisible(false)}
-        onTaskAdded={() => {
-          setIsAddModalVisible(false);
+      <TaskModal
+        visible={isTaskModalVisible}
+        onClose={() => {
+          setIsTaskModalVisible(false);
+          setSelectedTask(undefined);
+        }}
+        onTaskSaved={() => {
+          setIsTaskModalVisible(false);
+          setSelectedTask(undefined);
           fetchTasks();
         }}
+        task={selectedTask}
+      />
+
+      <DeleteConfirmationModal
+        visible={isDeleteModalVisible}
+        onClose={() => {
+          setIsDeleteModalVisible(false);
+          setTaskToDelete(undefined);
+        }}
+        onConfirm={confirmDelete}
+        taskTitle={taskToDelete?.title || ''}
       />
     </View>
   );
@@ -169,5 +253,31 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  taskRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  taskContent: {
+    flex: 1,
+    paddingRight: 16,
+  },
+  taskActions: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  actionButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  editButton: {
+    backgroundColor: '#007bff',
+  },
+  deleteButton: {
+    backgroundColor: '#dc3545',
   },
 }); 

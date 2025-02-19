@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Modal,
   View,
@@ -8,43 +8,67 @@ import {
   StyleSheet,
 } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
-import { createTask } from '../services/taskService';
+import { createTask, updateTask } from '../services/taskService';
+import { Task } from '../interfaces/Task';
 
-interface AddTaskModalProps {
+interface TaskModalProps {
   visible: boolean;
   onClose: () => void;
-  onTaskAdded: () => void;
+  onTaskSaved: () => void;
+  task?: Task;  // If provided, we're in edit mode
 }
 
 type TaskStatus = 'TODO' | 'IN_PROGRESS' | 'DONE';
 
-export const AddTaskModal: React.FC<AddTaskModalProps> = ({
+export const TaskModal: React.FC<TaskModalProps> = ({
   visible,
   onClose,
-  onTaskAdded,
+  onTaskSaved,
+  task
 }) => {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [status, setStatus] = useState<TaskStatus>('TODO');
 
-  const handleSubmit = async () => {
-    try {
-      await createTask({
-        title,
-        description,
-        status
-      });
-      
-      // Reset form
+  useEffect(() => {
+    if (task) {
+      setTitle(task.title);
+      setDescription(task.description);
+      setStatus(task.status as TaskStatus);
+    } else {
+      // Reset form when opening for new task
       setTitle('');
       setDescription('');
       setStatus('TODO');
+    }
+  }, [task, visible]);
+
+  const handleSubmit = async () => {
+    try {
+      if (task) {
+        // Update existing task
+        await updateTask(task.id, {
+          title,
+          description,
+          status
+        });
+      } else {
+        // Create new task
+        await createTask({
+          title,
+          description,
+          status
+        });
+      }
       
-      // Notify parent and close modal
-      onTaskAdded();
+      // Reset form and notify parent
+      setTitle('');
+      setDescription('');
+      setStatus('TODO');
+      onTaskSaved();
       onClose();
     } catch (error) {
-      console.error('Error creating task:', error);
+      console.error('Error saving task:', error);
     }
   };
 
@@ -57,7 +81,9 @@ export const AddTaskModal: React.FC<AddTaskModalProps> = ({
     >
       <View style={styles.centeredView}>
         <View style={styles.modalView}>
-          <Text style={styles.modalTitle}>Add New Task</Text>
+          <Text style={styles.modalTitle}>
+            {task ? 'Edit Task' : 'Add New Task'}
+          </Text>
           
           <TextInput
             style={styles.input}
@@ -100,7 +126,9 @@ export const AddTaskModal: React.FC<AddTaskModalProps> = ({
               style={[styles.button, styles.buttonSubmit]}
               onPress={handleSubmit}
             >
-              <Text style={styles.buttonText}>Add Task</Text>
+              <Text style={styles.buttonText}>
+                {task ? 'Save Changes' : 'Add Task'}
+              </Text>
             </TouchableOpacity>
           </View>
         </View>
