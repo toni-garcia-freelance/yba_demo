@@ -33,7 +33,7 @@ export const getTask = async (id: number): Promise<Task> => {
   }
 };
 
-export const createTask = async (task: Omit<Task, 'id' | 'createdAt' | 'updatedAt'>): Promise<Task> => {
+export const createTask = async (task: Omit<Task, 'id' | 'createdAt' | 'updatedAt' | 'parentTaskId' | 'userId' | 'parentTask'>): Promise<Task> => {
   try {
     const config = await getAuthHeader();
     const response = await axios.post<Task>(`${API_URL}/tasks`, task, config);
