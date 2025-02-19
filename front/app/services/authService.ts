@@ -1,62 +1,42 @@
 import axios from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { RegisterData } from '../interfaces/RegisterData';
+import { LoginData } from '../interfaces/LoginData';
+import { AuthResponse } from '../interfaces/AuthResponse';
 
 const API_URL = 'http://localhost:5000/api/auth';
-const TOKEN_KEY = '@auth_token';
 
-interface RegisterData {
-  email: string;
-  password: string;
-  name: string;
-}
-
-interface LoginData {
-  email: string;
-  password: string;
-}
-
-interface AuthResponse {
-  message: string;
-  token: string;
-  user: {
-    id: number;
-    name: string;
-    email: string;
-  };
-}
-
-export const authService = {
-  async register(data: RegisterData): Promise<AuthResponse> {
-    const response = await axios.post(`${API_URL}/register`, data);
-    this.setAuthToken(response.data.token);
-    return response.data;
-  },
-
-  async login(data: LoginData): Promise<AuthResponse> {
-    const response = await axios.post(`${API_URL}/login`, data);
-    this.setAuthToken(response.data.token);
-    return response.data;
-  },
-
-  setAuthToken(token: string): void {
-    axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-    localStorage.setItem(TOKEN_KEY, token);
-  },
-
-  removeAuthToken(): void {
-    delete axios.defaults.headers.common['Authorization'];
-    localStorage.removeItem(TOKEN_KEY);
-  },
-
-  loadStoredToken(): string | null {
-    const token = localStorage.getItem(TOKEN_KEY);
-    if (token) {
-      this.setAuthToken(token);
-    }
-    return token;
-  },
-
-  isAuthenticated(): boolean {
-    const token = this.loadStoredToken();
+export const isLoggedIn = async (): Promise<boolean> => {
+  try {
+    const token = await AsyncStorage.getItem('authToken');
     return !!token;
-  },
-}; 
+  } catch (error) {
+    return false;
+  }
+};
+
+export const register = async (data: RegisterData): Promise<AuthResponse> => {
+  try {
+    const response = await axios.post<AuthResponse>(`${API_URL}/register`, data);
+    const authResponse = response.data;
+
+    await AsyncStorage.setItem('authToken', authResponse.token);
+
+    return authResponse;
+  } catch (error) {
+    throw new Error('Failed to register');
+  }
+};
+
+export const login = async (data: LoginData): Promise<AuthResponse> => {
+  try {
+    const response = await axios.post<AuthResponse>(`${API_URL}/login`, data);
+    const authResponse = response.data;
+
+    await AsyncStorage.setItem('authToken', authResponse.token);
+
+    return authResponse;
+  } catch (error) {
+    throw new Error('Failed to login');
+  }
+};

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, Platform, } from 'react-native';
 import { router } from 'expo-router';
-import { authService } from '../../services/authService';
+import { login } from '../../services/authService';
 import { alertService } from '../../services/alertService';
 
 export default function LoginScreen() {
@@ -10,8 +10,7 @@ export default function LoginScreen() {
 
   const handleLogin = async () => {
     try {
-      const response = await authService.login({ email, password });
-      authService.setAuthToken(response.token);
+      const response = await login({ email, password });
       router.replace('/(tabs)' as any);
     } catch (error) {
       alertService.showAlert('Error', 'Failed to login. Please check your credentials.');
