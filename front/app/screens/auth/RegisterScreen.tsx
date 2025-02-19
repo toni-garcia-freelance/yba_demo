@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { router } from 'expo-router';
-import { authService } from '../../services/authService';
+import { register } from '../../services/authService';
+import { alertService } from '../../services/alertService';
 
 export default function RegisterScreen() {
   const [name, setName] = useState('');
@@ -10,11 +11,10 @@ export default function RegisterScreen() {
 
   const handleRegister = async () => {
     try {
-      const response = await authService.register({ name, email, password });
-      authService.setAuthToken(response.token);
+      const response = await register({ name, email, password });
       router.replace('/(tabs)' as any);
     } catch (error) {
-      Alert.alert('Error', 'Failed to register. Please try again.');
+      alertService.showAlert('Error', 'Failed to login. Please check your credentials.');
     }
   };
 
