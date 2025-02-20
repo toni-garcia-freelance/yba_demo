@@ -40,3 +40,11 @@ export const login = async (data: LoginData): Promise<AuthResponse> => {
     throw new Error('Failed to login');
   }
 };
+
+export const logout = async (): Promise<void> => {
+  try {
+    await AsyncStorage.removeItem('authToken');
+  } catch (error) {
+    throw new Error('Failed to logout');
+  }
+};

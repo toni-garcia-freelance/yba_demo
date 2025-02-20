@@ -26,6 +26,13 @@ export default function TabLayout() {
           tabBarIcon: () => null,
         }}
       />
+      <Tabs.Screen
+        name="account"
+        options={{
+          title: 'Account',
+          tabBarIcon: () => null,
+        }}
+      />
     </Tabs>
   );
 } 
