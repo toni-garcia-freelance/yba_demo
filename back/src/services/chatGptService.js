@@ -39,7 +39,7 @@ const completion = async (message, userId) => {
             {
                 role: "developer",
                 content: `Tu es un assistant qui aide à découper les projets en features et en tâches.
-                Retourne uniquement un JSON bien formé et valide.
+                Retourne uniquement un JSON bien formé et valide. Retourne au maximum 4 tâches.
                 Voici le format attendu :
                 {
                     "project": "Nom du projet",
