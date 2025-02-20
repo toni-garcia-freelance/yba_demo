@@ -5,7 +5,7 @@ const { sequelize, testConnection } = require('./config/database');
 const User = require('./src/models/User');
 const authRoutes = require('./src/routes/auth');
 const tasksRoutes = require('./src/routes/tasks');
-
+const chatRoutes = require('./src/routes/chat');
 const app = express();
 
 // Middleware
@@ -23,6 +23,7 @@ sequelize.sync({ force: false })
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/tasks', tasksRoutes);
+app.use('/api/chat', chatRoutes);
 
 // Start server
 const PORT = process.env.PORT || 5000;
