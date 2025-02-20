@@ -12,4 +12,5 @@ You can run the project locally by following the README instructions in the fron
 ## Demo Video
 Here is a video showcasing the app in action:
 
+https://github.com/user-attachments/assets/724ead6d-d5c1-483f-9707-a7623ac111e5
 
