@@ -6,6 +6,8 @@
 cp .env.example .env
 ```
 
+Ajouter la clé API OpenAI dans le fichier .env
+
 ## Installation des dépendances
 
 ```bash
@@ -15,7 +17,7 @@ npm install
 ## Lancement de Docker pour la base de données
 
 ```bash
-docker-compose up -d
+docker-compose up --build -d
 ```
 
 ## Lancement des migrations 
